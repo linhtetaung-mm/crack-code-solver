@@ -27,8 +27,8 @@ Follow these quick commands to spin up the codebase in your local developer spac
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git
-cd YOUR_REPO_NAME
+git clone https://github.com/linhtetaung-mm/crack-code-solver.git
+cd crack-code-solver
 ```
 
 ### 2. Install Project Dependencies
