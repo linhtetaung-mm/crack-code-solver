@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Cpu, RotateCcw, Home, Terminal, ShieldCheck, ChevronRight } from 'lucide-react';
+import { RotateCcw, Home, Terminal, ShieldCheck, ChevronRight } from 'lucide-react';
 
 interface Feedback {
   greens: number;

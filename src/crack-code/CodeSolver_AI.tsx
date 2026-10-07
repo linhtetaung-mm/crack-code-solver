@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Terminal, Cpu, RotateCcw, ChevronRight, Hash, CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Terminal, Cpu, RotateCcw, ChevronRight, CheckCircle2 } from 'lucide-react';
 
 // --- Types ---
 interface Feedback {

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Home, RotateCcw, Lock, Unlock } from 'lucide-react';
+import React, { useState } from 'react';
+import { Home, RotateCcw } from 'lucide-react';
 
 // --- Types & Interfaces ---
 interface GuessResult {
@@ -88,7 +88,7 @@ const CrackCode: React.FC = () => {
   };
 
   // --- Sub-Components ---
-  const HomeScreen = () => (
+  const homeScreen = (
     <div className="flex flex-col items-center space-y-8 animate-in fade-in duration-700">
       <div className="bg-slate-800/40 p-6 rounded-2xl border border-slate-700 text-slate-300 max-w-md text-center shadow-xl">
         <p className="text-sm leading-relaxed mb-4">
@@ -131,7 +131,7 @@ const CrackCode: React.FC = () => {
       </header>
 
       {view === 'home' ? (
-        <HomeScreen />
+        homeScreen
       ) : (
         <div className="w-full max-w-2xl space-y-6 animate-in zoom-in-95 duration-500">
           <div className="flex justify-between items-center bg-black/20 p-4 rounded-2xl backdrop-blur-sm border border-white/5">

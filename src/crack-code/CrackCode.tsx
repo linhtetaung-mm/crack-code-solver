@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { scoreGuess } from './puzzle.ts';
 import { RotateCcw, Home, Hash, CheckCircle2, ShieldCheck, Terminal } from 'lucide-react';
 
 interface GuessResult {
@@ -34,27 +35,7 @@ const CrackCode: React.FC = () => {
   const checkGuess = (): void => {
     if (isWon) return;
 
-    let greens = 0;
-    let nulls = 0;
-
-    currentInput.forEach((digit, i) => {
-      if (digit === secretCode[i]) greens++;//[cite: 5]
-    });
-
-    const codeCounts: Record<number, number> = {};
-    const guessCounts: Record<number, number> = {};
-    secretCode.forEach(n => codeCounts[n] = (codeCounts[n] || 0) + 1);//[cite: 5]
-    currentInput.forEach(n => guessCounts[n] = (guessCounts[n] || 0) + 1);//[cite: 5]
-
-    Object.keys(codeCounts).forEach(key => {
-      const num = parseInt(key);
-      const countInGuess = guessCounts[num] || 0;
-      if (codeCounts[num] > countInGuess) {
-        nulls += (codeCounts[num] - countInGuess);//[cite: 5]
-      }
-    });
-
-    const reds = level - greens - nulls;//[cite: 5]
+    const { greens, reds, nulls } = scoreGuess(secretCode, currentInput);
     const newEntry: GuessEntry = {
       digits: [...currentInput],
       result: { greens, reds, nulls }

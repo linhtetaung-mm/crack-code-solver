@@ -3,16 +3,8 @@
 import React, { useState } from 'react';
 import { RotateCcw, Home, Terminal, ShieldCheck, Zap, Activity } from 'lucide-react';
 
-interface Feedback {
-  greens: number;
-  reds: number;
-  nulls: number;
-}
-
-interface Step {
-  guess: number[];
-  feedback: Feedback;
-}
+import { solveCode } from './puzzle.ts';
+import type { Feedback, Step } from './puzzle.ts';
 
 const AdvancedSolver: React.FC = () => {
   const [level, setLevel] = useState<number>(4);
@@ -22,69 +14,6 @@ const AdvancedSolver: React.FC = () => {
   const [feedback, setFeedback] = useState<Feedback>({ greens: 0, reds: 0, nulls: 0 });
   const [isSolved, setIsSolved] = useState(false);
   const [isComputing, setIsComputing] = useState(false);
-
-  // --- CORE LOGIC: RECURSIVE BACKTRACKING ---
-
-  const isPartialValid = (partial: number[], index: number, history: Step[]): boolean => {
-    for (const step of history) {
-      let greens = 0;
-      // Pruning Rule: If we already have more Greens than the feedback allows, stop
-      for (let i = 0; i <= index; i++) {
-        if (partial[i] === step.guess[i]) greens++;
-      }
-      if (greens > step.feedback.greens) return false;
-      
-      // Lookahead Rule: If there aren't enough remaining slots to reach the required Greens, stop
-      const remainingSlots = (level - 1) - index;
-      if (greens + remainingSlots < step.feedback.greens) return false;
-    }
-    return true;
-  };
-
-  const solve = (history: Step[]): number[] | null => {
-    const result: number[] = new Array(level).fill(0);
-
-    const backtrack = (index: number): boolean => {
-      if (index === level) {
-        // Final verification of total Reds/Greens
-        return verifyFullConstraints(result, history);
-      }
-
-      for (let d = 0; d <= 9; d++) {
-        result[index] = d;
-        if (isPartialValid(result, index, history)) {
-          if (backtrack(index + 1)) return true;
-        }
-      }
-      return false;
-    };
-
-    return backtrack(0) ? [...result] : null;
-  };
-
-  const verifyFullConstraints = (candidate: number[], history: Step[]): boolean => {
-    for (const step of history) {
-      let greens = 0;
-      let nulls = 0;
-      
-      candidate.forEach((num, i) => { if (num === step.guess[i]) greens++; });
-
-      const candCounts: Record<number, number> = {};
-      const stepCounts: Record<number, number> = {};
-      candidate.forEach(n => candCounts[n] = (candCounts[n] || 0) + 1);
-      step.guess.forEach(n => stepCounts[n] = (stepCounts[n] || 0) + 1);
-
-      Object.keys(candCounts).forEach(key => {
-        const num = parseInt(key);
-        const countInStep = stepCounts[num] || 0;
-        if (candCounts[num] > countInStep) nulls += (candCounts[num] - countInStep);
-      });
-
-      const reds = level - greens - nulls;
-      if (greens !== step.feedback.greens || reds !== step.feedback.reds) return false;
-    }
-    return true;
-  };
 
   const handleProcess = () => {
     if (feedback.greens === level) {
@@ -96,7 +25,7 @@ const AdvancedSolver: React.FC = () => {
     // Timeout allows the UI to show "Computing" state before the heavy logic blocks
     setTimeout(() => {
       const newSteps = [{ guess: currentGuess, feedback }, ...steps];
-      const nextCode = solve(newSteps);
+      const nextCode = solveCode(level, newSteps);
 
       if (nextCode) {
         setCurrentGuess(nextCode);
