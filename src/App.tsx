@@ -1,107 +1,211 @@
-import { useState } from 'react';
-import CrackCode from './crack-code/CrackCode';
-import AdvancedSolver from './crack-code/AdvanceCodeSolver';
-import ReactMarkdown from 'react-markdown';
-
-// Vite magic: "?raw" tells Vite to load the file contents directly as a text string
-import rulesMarkdown from './crack-code/rules.md?raw';
-import techMarkdown from './crack-code/crackcodesolver.md?raw';
+import { useEffect, useRef, useState } from "react";
+import {
+  ArrowUpRight,
+  BookOpen,
+  Braces,
+  Fingerprint,
+  Code2,
+  ShieldCheck,
+  Terminal,
+  X,
+} from "lucide-react";
+import CrackCode from "./crack-code/CrackCode";
+import AdvancedSolver from "./crack-code/AdvanceCodeSolver";
+import "./App.css";
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'game' | 'solver'>('game');
-  const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<"game" | "solver">("game");
+  const help = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    document.title = "Crack Code — Breach the system";
+  }, []);
 
   return (
-    <div className="max-w-3xl mx-auto p-4 md:p-8 relative min-h-screen">
-      
-      {/* Top Header & Info Row */}
-      <div className="flex justify-between items-center max-w-md mx-auto mb-6">
-        {/* Navigation Switch */}
-        <div className="flex bg-gray-200 p-1 rounded-xl flex-1 mr-4">
+    <div className="app-shell">
+      <div className="ambient-grid" aria-hidden="true" />
+      <header className="topbar">
+        <a className="brand" href="./" aria-label="Crack Code home">
+          <span className="brand-mark">
+            <Braces size={23} />
+          </span>
+          <span>
+            CRACK<span className="accent">CODE</span>
+            <small>LOGIC IS YOUR ONLY EXPLOIT.</small>
+          </span>
+        </a>
+        <nav className="mode-switch" aria-label="Application mode">
           <button
-            onClick={() => setActiveTab('game')}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
-              activeTab === 'game' 
-                ? 'bg-white text-gray-900 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
+            className={activeTab === "game" ? "active" : ""}
+            aria-pressed={activeTab === "game"}
+            onClick={() => setActiveTab("game")}
           >
-            🎮 Crack Code Game
+            <Terminal size={15} /> The game <span>01</span>
           </button>
           <button
-            onClick={() => setActiveTab('solver')}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
-              activeTab === 'solver' 
-                ? 'bg-white text-gray-900 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
+            className={activeTab === "solver" ? "active" : ""}
+            aria-pressed={activeTab === "solver"}
+            onClick={() => setActiveTab("solver")}
           >
-            🤖 Advanced Solver
+            <Fingerprint size={15} /> The solver <span>02</span>
           </button>
-        </div>
-
-        {/* Floating Help Button */}
+        </nav>
         <button
-          onClick={() => setIsHelpOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium rounded-xl shadow transition-all cursor-pointer"
+          className="guide-button"
+          onClick={() => help.current?.showModal()}
         >
-          ❓ How to Play
+          <BookOpen size={15} />
+          <span>Field guide</span>
+          <ArrowUpRight size={14} />
         </button>
-      </div>
+      </header>
 
-      {/* Component Persistent Container wrapper */}
-      <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 md:p-8 shadow-sm">
-        <div className={activeTab === 'game' ? 'block' : 'hidden'}>
+      <main>
+        <section className="hero" aria-label="Introduction">
+          <div className="hero-copy">
+            <div className="eyebrow">
+              <span className="live-dot" /> A LOGIC PUZZLE. AN UNAUTHORIZED
+              MINDSET.
+            </div>
+            <h1>
+              BREAK THE CODE.
+              <br />
+              <span>BEND THE SYSTEM.</span>
+            </h1>
+            <p>
+              No brute force. No shortcuts. Just you, a hidden sequence,
+              <br className="desktop-break" /> and the beautiful art of figuring
+              it out.
+            </p>
+            <div className="hero-tags">
+              <span>
+                <ShieldCheck size={13} /> Pure deduction
+              </span>
+              <i />
+              <span>3–10 digit challenges</span>
+              <i />
+              <span>Unlimited attempts</span>
+            </div>
+          </div>
+          <div className="cipher-art" aria-hidden="true">
+            <div className="matrix-streams">
+              {Array.from({ length: 12 }, (_, i) => (
+                <span key={i} style={{ animationDelay: `${i * -1.7}s` }}>
+                  {"010011101001101001010110".slice(i % 5)}
+                  <br />
+                  {"110101001101010011010010".slice(i % 4)}
+                </span>
+              ))}
+            </div>
+            <div className="orbital orbital-one" />
+            <div className="orbital orbital-two" />
+            <span className="art-coordinate top">ENCRYPTED SIGNAL // 0x4F</span>
+            <div className="cipher-blocks">
+              {["0", "4", "?", "7"].map((n, i) => (
+                <div key={i} className={n === "?" ? "unknown" : ""}>
+                  {n}
+                  <span>{`0${i + 1}`}</span>
+                </div>
+              ))}
+            </div>
+            <span className="art-coordinate bottom">
+              <span className="live-dot" /> AWAITING HUMAN INTELLIGENCE
+            </span>
+            <span className="art-cross cross-one">+</span>
+            <span className="art-cross cross-two">+</span>
+          </div>
+        </section>
+        <div hidden={activeTab !== "game"}>
           <CrackCode />
         </div>
-        <div className={activeTab === 'solver' ? 'block' : 'hidden'}>
+        <div hidden={activeTab !== "solver"}>
           <AdvancedSolver />
         </div>
-      </div>
+      </main>
 
-      {/* The Accessible Modal Overlay */}
-      {isHelpOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-xl w-full max-h-[80vh] flex flex-col shadow-2xl animate-in fade-in zoom-in-95 duration-150">
-            
-            {/* Modal Header */}
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-900">Puzzle Instructions</h2>
-              <button 
-                onClick={() => setIsHelpOpen(false)}
-                className="text-gray-400 hover:text-gray-600 text-2xl font-bold cursor-pointer"
-              >
-                &times;
-              </button>
-            </div>
-
-            {/* Scrollable Content Pane with Tailwind Prose Styles */}
-            <div className="p-6 overflow-y-auto text-left">
-              <article className="prose prose-slate max-w-none prose-headings:font-bold">
-                <ReactMarkdown>{rulesMarkdown}</ReactMarkdown>
-                <hr/><br/>
-                <ReactMarkdown>{techMarkdown}</ReactMarkdown>
-              </article>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="p-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl text-right">
-              <button
-                onClick={() => setIsHelpOpen(false)}
-                className="bg-gray-900 hover:bg-gray-800 text-white px-5 py-2 text-sm font-medium rounded-xl cursor-pointer"
-              >
-                Got it, let's play!
-              </button>
-            </div>
-
-          </div>
+      <footer className="footer">
+        <span>
+          <span className="live-dot" /> ALL SYSTEMS OPERATIONAL <i>/</i> LOCAL
+          SIMULATION
+        </span>
+        <a
+          href="https://github.com/linhtetaung-mm/crack-code-solver"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <Code2 size={14} /> Built for curious minds <ArrowUpRight size={13} />
+        </a>
+        <span>
+          CRACK CODE <span className="accent">//</span> V.02
+        </span>
+      </footer>
+      <dialog
+        ref={help}
+        aria-labelledby="field-guide-title"
+        className="guide-dialog"
+        onClick={(event) => {
+          if (event.target === event.currentTarget) help.current?.close();
+        }}
+      >
+        <div className="panel-heading">
+          <span id="field-guide-title">
+            <BookOpen size={15} /> FIELD GUIDE
+          </span>
+          <button
+            className="icon-button"
+            aria-label="Close field guide"
+            onClick={() => help.current?.close()}
+          >
+            <X size={20} />
+          </button>
         </div>
-      )}
-
+        <div className="guide-content">
+          <div className="eyebrow accent">YOUR MISSION</div>
+          <h2>Think like a codebreaker.</h2>
+          <p>
+            Find the hidden sequence in as few attempts as possible. Every digit
+            is 0–9. Repeated digits and leading zeroes are allowed.
+          </p>
+          <h3>Read the signal</h3>
+          <p>
+            Each attempt gives you totals, not clues for individual positions.
+            Each occurrence of a digit can match only once.
+          </p>
+          <ul className="guide-signals">
+            <li>
+              <b className="signal green">● Exact</b> Right digit, right
+              position.
+            </li>
+            <li>
+              <b className="signal red">◆ Misplaced</b> Right digit, wrong
+              position.
+            </li>
+            <li>
+              <b className="signal gray">— Absent</b> No remaining match in the
+              code.
+            </li>
+          </ul>
+          <h3>Work the pattern</h3>
+          <p>
+            Try different digits first. Then rearrange your matches and compare
+            the feedback. Typing moves to the next digit; press Enter to submit
+            a sequence. Arrow keys adjust a focused digit.
+          </p>
+          <h3>Bring your own puzzle</h3>
+          <p>
+            Open The solver, choose your code length, and enter the exact,
+            misplaced, and absent totals for each suggested guess. It will find
+            a sequence consistent with your feedback. Large puzzles can take
+            longer to analyze.
+          </p>
+          <button
+            className="primary-button"
+            onClick={() => help.current?.close()}
+          >
+            I'm in. Let's crack it. <ArrowUpRight size={17} />
+          </button>
+        </div>
+      </dialog>
     </div>
   );
 }
-
 export default App;
-
-

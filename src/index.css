@@ -1,2 +1,142 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+:root {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #e1e7e1;
+  background: #080c0a;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  color-scheme: dark;
+  --lime: #b5f55a;
+  --green: #98ed73;
+  --muted: #88958b;
+  --line: #28342b;
+  --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+}
+button,
+input,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+button,
+input {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+button,
+a,
+input {
+  outline-offset: 5px;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--lime);
+}
+button {
+  transition:
+    background 0.18s,
+    border-color 0.18s,
+    color 0.18s,
+    transform 0.18s;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button svg {
+  flex-shrink: 0;
+}
+button {
+  border: 0;
+}
+button,
+input {
+  color: inherit;
+}
+::selection {
+  background: var(--lime);
+  color: #0a1009;
+}
+[hidden] {
+  display: none !important;
+}
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+button {
+  background: transparent;
+}
+.accent,
+.green {
+  color: var(--lime);
+}
+.red {
+  color: #f2917d;
+}
+.gray {
+  color: #829088;
+}
+.muted {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.live-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  background: var(--lime);
+  border-radius: 50%;
+  box-shadow: 0 0 8px #b5f55366;
+  flex-shrink: 0;
+}
+.eyebrow,
+.section-kicker {
+  font: 10px var(--mono);
+  letter-spacing: 1.5px;
+}
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.section-kicker {
+  color: #879786;
+}
+.blinking-cursor {
+  color: var(--lime);
+  animation: blink 1.5s steps(2, start) infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

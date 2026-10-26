@@ -1,147 +1,311 @@
-"use client";
+import { useEffect, useRef, useState } from "react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  BrainCircuit,
+  ChevronLeft,
+  Fingerprint,
+  RotateCcw,
+  Terminal,
+  X,
+} from "lucide-react";
+import type { Feedback, Step } from "./puzzle";
+import { LevelSelector, MissionBriefing, Signals } from "./ProtocolUI";
 
-import React, { useState } from 'react';
-import { RotateCcw, Home, Terminal, ShieldCheck, Zap, Activity } from 'lucide-react';
-
-import { solveCode } from './puzzle.ts';
-import type { Feedback, Step } from './puzzle.ts';
-
-const AdvancedSolver: React.FC = () => {
-  const [level, setLevel] = useState<number>(4);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [currentGuess, setCurrentGuess] = useState<number[]>([]);
+export default function AdvancedSolver() {
+  const [level, setLevel] = useState(4);
+  const [guess, setGuess] = useState<number[] | null>(null);
   const [steps, setSteps] = useState<Step[]>([]);
-  const [feedback, setFeedback] = useState<Feedback>({ greens: 0, reds: 0, nulls: 0 });
-  const [isSolved, setIsSolved] = useState(false);
-  const [isComputing, setIsComputing] = useState(false);
-
-  const handleProcess = () => {
-    if (feedback.greens === level) {
-      setIsSolved(true);
+  const [feedback, setFeedback] = useState<Feedback>({
+    greens: 0,
+    reds: 0,
+    nulls: 0,
+  });
+  const [solved, setSolved] = useState(false);
+  const [computing, setComputing] = useState(false);
+  const [error, setError] = useState("");
+  const worker = useRef<Worker | null>(null);
+  useEffect(() => () => worker.current?.terminate(), []);
+  const cancel = () => {
+    worker.current?.terminate();
+    worker.current = null;
+    setComputing(false);
+  };
+  const reset = () => {
+    cancel();
+    setGuess(Array(level).fill(0));
+    setSteps([]);
+    setSolved(false);
+    setError("");
+    setFeedback({ greens: 0, reds: 0, nulls: 0 });
+  };
+  const process = () => {
+    if (!guess || computing || solved) return;
+    if (
+      Object.values(feedback).some(
+        (n) => !Number.isInteger(n) || n < 0 || n > level,
+      ) ||
+      feedback.greens + feedback.reds + feedback.nulls !== level
+    ) {
+      setError(
+        `Feedback must contain whole numbers from 0 to ${level}, totaling ${level}.`,
+      );
       return;
     }
-
-    setIsComputing(true);
-    // Timeout allows the UI to show "Computing" state before the heavy logic blocks
-    setTimeout(() => {
-      const newSteps = [{ guess: currentGuess, feedback }, ...steps];
-      const nextCode = solveCode(level, newSteps);
-
-      if (nextCode) {
-        setCurrentGuess(nextCode);
-        setSteps(newSteps);
+    setError("");
+    const history = [
+      { guess: [...guess], feedback: { ...feedback } },
+      ...steps,
+    ];
+    if (feedback.greens === level) {
+      setSolved(true);
+      setSteps(history);
+      return;
+    }
+    setComputing(true);
+    worker.current = new Worker(
+      new URL("./puzzle.worker.ts", import.meta.url),
+      { type: "module" },
+    );
+    worker.current.onmessage = (event: MessageEvent<number[] | null>) => {
+      if (event.data) {
+        setGuess(event.data);
+        setSteps(history);
         setFeedback({ greens: 0, reds: 0, nulls: 0 });
-      } else {
-        alert("Logic Conflict: No sequence exists that satisfies all provided feedback.");
-      }
-      setIsComputing(false);
-    }, 50);
+      } else
+        setError(
+          "Conflicting signals. No code matches this feedback and your previous entries. Check the counts and try again.",
+        );
+      cancel();
+    };
+    worker.current.onerror = () => {
+      setError("Analysis was interrupted. Please try again.");
+      cancel();
+    };
+    worker.current.postMessage({ level, history });
   };
-
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-300 font-mono p-4 md:p-12 flex flex-col items-center">
-      <div className="w-full max-w-xl space-y-6">
-        
-        {/* Nav Header */}
-        <div className="flex justify-between items-center bg-slate-900/50 border border-slate-800 p-4 rounded-2xl">
-          <button onClick={() => setIsInitialized(false)} className="hover:text-white transition-colors"><Home size={18} /></button>
-          <div className="flex items-center gap-3">
-            <Activity size={14} className="text-blue-500 animate-pulse" />
-            <span className="text-[10px] tracking-[0.3em] uppercase font-bold">Backtracking Engine</span>
-          </div>
-          <button onClick={() => { setSteps([]); setIsSolved(false); }} className="hover:text-white transition-colors"><RotateCcw size={18} /></button>
+    <section className="workspace" aria-label="Advanced code solver">
+      <div className="panel main-panel">
+        <div className="panel-heading">
+          <span>
+            <Fingerprint size={15} /> DEDUCTION ENGINE
+          </span>
+          <span className="panel-status">
+            <span className="live-dot" />{" "}
+            {computing ? "ANALYZING" : solved ? "RESOLVED" : "ONLINE"}
+          </span>
         </div>
-
-        {!isInitialized ? (
-          <div className="bg-slate-900 border border-slate-800 p-12 rounded-3xl text-center space-y-8">
-            <h2 className="text-white text-xs uppercase tracking-[0.4em]">Complexity Selection</h2>
-            <div className="flex flex-wrap justify-center gap-3">
-              {[3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                <button 
-                  key={n} 
-                  onClick={() => setLevel(n)}
-                  className={`w-12 h-12 rounded-xl border-2 font-black transition-all ${level === n ? 'border-blue-500 bg-blue-500/10 text-blue-400' : 'border-slate-800 text-slate-600'}`}
-                >
-                  {n}
-                </button>
-              ))}
+        {!guess ? (
+          <div className="setup-content">
+            <div className="section-kicker">02 / REVERSE THE ENCRYPTION</div>
+            <div className="section-title">
+              <h2>A second mind. On your side.</h2>
+              <span className="outline-icon">
+                <BrainCircuit size={22} />
+              </span>
             </div>
-            <button 
-              onClick={() => { setCurrentGuess(Array(level).fill(0)); setIsInitialized(true); }}
-              className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold uppercase text-xs tracking-widest rounded-xl transition-all"
-            >
-              Start Solver
+            <p className="muted">
+              Bring a puzzle. Feed the signals. Find a consistent code.
+            </p>
+            <LevelSelector level={level} onChange={setLevel} />
+            <div className="config-summary">
+              <div>
+                <span>CODE LENGTH</span>
+                <strong>
+                  {String(level).padStart(2, "0")} <small>digits</small>
+                </strong>
+              </div>
+              <div>
+                <span>METHOD</span>
+                <strong className="method-label">Logical elimination</strong>
+              </div>
+            </div>
+            <button className="primary-button" onClick={reset}>
+              <span>
+                <BrainCircuit size={17} /> Initialize solver
+              </span>
+              <ArrowUpRight size={20} />
             </button>
+            <div className="under-button">
+              <span>Your feedback guides every next move.</span>
+              <span>HUMAN + MACHINE</span>
+            </div>
+            <div className="terminal-snippet">
+              <span>› solver.init</span>
+              <p>
+                A million possibilities. One consistent answer.
+                <br />
+                Ready to connect the dots
+                <span className="blinking-cursor">_</span>
+              </p>
+              <span className="terminal-watermark">&gt;_</span>
+            </div>
           </div>
         ) : (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-            
-            {/* Display Card */}
-            <div className="bg-slate-900 border-t-2 border-t-blue-500 p-8 rounded-2xl shadow-2xl space-y-8">
-              <div className="flex flex-wrap justify-center gap-2">
-                {currentGuess.map((num, i) => (
-                  <div key={i} className="w-10 h-14 bg-slate-950 border border-slate-800 rounded-lg flex items-center justify-center text-2xl font-black text-white shadow-inner">
-                    {num}
-                  </div>
-                ))}
+          <div className="play-content">
+            <div className="play-toolbar">
+              <button
+                className="text-button"
+                onClick={() => {
+                  cancel();
+                  setGuess(null);
+                }}
+              >
+                <ChevronLeft size={14} /> Configure
+              </button>
+              <span>{level}-DIGIT ANALYSIS</span>
+              <button className="text-button" onClick={reset}>
+                <RotateCcw size={13} /> Reset
+              </button>
+            </div>
+            <div className="terminal-title">
+              <span className="target-icon">
+                <BrainCircuit size={25} />
+              </span>
+              <div className="section-kicker">
+                {solved ? "CODE CONFIRMED" : "SUGGESTED SEQUENCE"}
               </div>
-
-              {!isSolved ? (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-3 gap-4">
-                    {(['greens', 'reds', 'nulls'] as const).map(key => (
-                      <div key={key} className="space-y-2">
-                        <label className="text-[10px] uppercase font-bold text-center block text-slate-500">{key}</label>
-                        <input 
-                          type="number"
-                          value={feedback[key]}
-                          onChange={(e) => setFeedback({...feedback, [key]: parseInt(e.target.value) || 0})}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-lg py-3 text-center text-xl font-bold focus:ring-1 focus:ring-blue-500 outline-none"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  <button 
-                    onClick={handleProcess}
-                    disabled={isComputing}
-                    className="w-full py-4 bg-white text-black font-black uppercase text-xs tracking-[0.2em] rounded-xl hover:bg-blue-400 hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              <h2>{solved ? "Mystery resolved." : "Test this sequence."}</h2>
+              <p className="muted">
+                {solved
+                  ? "Your feedback confirms the hidden code."
+                  : "Try this guess in your puzzle, then report its feedback."}
+              </p>
+            </div>
+            <div className={`solver-code ${level > 6 ? "compact" : ""}`}>
+              {guess.map((n, i) => (
+                <span key={i}>{n}</span>
+              ))}
+            </div>
+            {!solved && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  process();
+                }}
+              >
+                <div className="feedback-inputs">
+                  {(["greens", "reds", "nulls"] as const).map((key, i) => (
+                    <label key={key}>
+                      <span className={["green", "red", "gray"][i]}>
+                        {["● EXACT", "◆ MISPLACED", "— ABSENT"][i]}
+                      </span>
+                      <input
+                        aria-label={
+                          [
+                            "Exact matches",
+                            "Misplaced digits",
+                            "Absent digits",
+                          ][i]
+                        }
+                        type="number"
+                        min={0}
+                        max={level}
+                        step={1}
+                        disabled={computing}
+                        value={feedback[key]}
+                        onChange={(e) =>
+                          setFeedback({
+                            ...feedback,
+                            [key]: Number(e.target.value),
+                          })
+                        }
+                      />
+                    </label>
+                  ))}
+                </div>
+                <p className="feedback-total">
+                  FEEDBACK TOTAL{" "}
+                  <strong
+                    className={
+                      feedback.greens + feedback.reds + feedback.nulls === level
+                        ? "accent"
+                        : ""
+                    }
                   >
-                    {isComputing ? <><Zap size={14} className="animate-bounce" /> Analyzing Tree...</> : 'Process Feedback'}
+                    {feedback.greens + feedback.reds + feedback.nulls} / {level}
+                  </strong>
+                </p>
+                {error && (
+                  <p role="alert" className="error-message">
+                    {error}
+                  </p>
+                )}
+                <button
+                  className="primary-button"
+                  disabled={computing}
+                  type="submit"
+                >
+                  <span>
+                    <BrainCircuit size={17} />{" "}
+                    {computing
+                      ? "Tracing the possibilities…"
+                      : "Analyze feedback"}
+                  </span>
+                  <ArrowRight size={19} />
+                </button>
+                {computing && (
+                  <button
+                    className="text-button cancel-button"
+                    type="button"
+                    onClick={cancel}
+                  >
+                    <X size={13} /> Cancel analysis
                   </button>
-                </div>
-              ) : (
-                <div className="bg-emerald-500/10 border border-emerald-500/30 p-6 rounded-xl text-center">
-                  <ShieldCheck className="text-emerald-500 mx-auto mb-2" size={32} />
-                  <p className="text-emerald-400 font-bold uppercase tracking-widest text-sm">Target Neutralized</p>
-                </div>
-              )}
-            </div>
-
-            {/* Logs */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 px-2">
-                <Terminal size={14} className="text-slate-600" />
-                <span className="text-[10px] uppercase tracking-widest text-slate-600 font-bold">Execution History</span>
-                <div className="flex-1 border-b border-slate-800 border-dotted" />
-              </div>
-              <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
-                {steps.map((step, i) => (
-                  <div key={i} className="flex items-center justify-between bg-slate-900/40 p-4 rounded-xl border border-slate-800/50">
-                    <span className="text-xs font-bold text-slate-500 tracking-widest">{step.guess.join('')}</span>
-                    <div className="flex gap-1.5">
-                      {Array(step.feedback.greens).fill(0).map((_, j) => <div key={j} className="w-2 h-2 rounded-full bg-emerald-500" />)}
-                      {Array(step.feedback.reds).fill(0).map((_, j) => <div key={j} className="w-2 h-2 rounded-full bg-rose-500" />)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
+                )}
+              </form>
+            )}
+            {solved && (
+              <button className="primary-button" onClick={reset}>
+                Solve another code <ArrowUpRight size={19} />
+              </button>
+            )}
           </div>
         )}
       </div>
-    </div>
+      {!guess ? (
+        <MissionBriefing />
+      ) : (
+        <aside className="panel history-panel">
+          <div className="panel-heading">
+            <span>
+              <Terminal size={14} /> SIGNAL HISTORY
+            </span>
+            <span className="small-tag">{steps.length} ENTRIES</span>
+          </div>
+          <div className="history-key">
+            <span>SEQUENCE</span>
+            <span>EXACT / SHIFT / OUT</span>
+          </div>
+          <div className="history-scroll" aria-live="polite">
+            {steps.length ? (
+              steps.map((step, i) => (
+                <div className="history-row" key={steps.length - i}>
+                  <span className="attempt-index">
+                    {String(steps.length - i).padStart(2, "0")}
+                  </span>
+                  <strong>{step.guess.join("")}</strong>
+                  <Signals result={step.feedback} />
+                </div>
+              ))
+            ) : (
+              <div className="empty-log">
+                <BrainCircuit size={32} />
+                <h3>Give the engine a signal.</h3>
+                <p>
+                  Your feedback builds a trail.
+                  <br />
+                  Each clue narrows the possibilities.
+                </p>
+              </div>
+            )}
+          </div>
+          <div className="log-footer">
+            <span className="live-dot" /> EVERY SIGNAL COUNTS.
+          </div>
+        </aside>
+      )}
+    </section>
   );
-};
-
-export default AdvancedSolver;
+}
