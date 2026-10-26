@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="192" viewBox="0 0 240 64" fill="none" role="img" aria-labelledby="title description">
+  <title id="title">Crack Code</title>
+  <desc id="description">Green braces emblem beside the Crack Code wordmark and the tagline: Logic is your only exploit.</desc>
+  <defs>
+    <clipPath id="badge-clip">
+      <path d="M12 12H40.5L50 22V52H21.5L12 42Z"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#badge-clip)">
+    <path d="M12 12H50V52H12Z" fill="#B5F55A" fill-opacity="0.0353"/>
+    <path d="M12.5 12.5H49.5V51.5H12.5Z" stroke="#61783C"/>
+  </g>
+  <g transform="translate(19.5 20.5) scale(0.9583333333)" stroke="#B5F55A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"/>
+    <path d="M16 3h1a2 2 0 0 1 2 2v5a2 2 0 0 0 2 2 2 2 0 0 0-2 2v5a2 2 0 0 1-2 2h-1"/>
+  </g>
+  <text x="61" y="30" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="800" letter-spacing="-0.7" fill="#E1E7E1">CRACK<tspan fill="#B5F55A">CODE</tspan></text>
+  <text x="61" y="46" font-family="SFMono-Regular, Consolas, Liberation Mono, monospace" font-size="8" font-weight="400" letter-spacing="1.1" fill="#83907F">LOGIC IS YOUR ONLY EXPLOIT.</text>
+</svg>
